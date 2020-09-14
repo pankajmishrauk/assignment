@@ -1,0 +1,68 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CFN template for creation of SSM role.",
+  "Parameters": {
+    "BuildURL": {
+      "Type": "String"
+    },
+    "UTCTimeStamp": {
+      "Default": "2015-06-03T01:45:45",
+      "Type": "String",
+      "Description": "UTC TimeStamp sample example 2010-09-09T09:45:45"
+    },
+    "EnvironUsed": {
+      "Default": "dev",
+      "Description": "The Environment Used.",
+      "Type": "String",
+      "AllowedValues": [
+        "dev",
+        "uat",
+        "prod"
+      ],
+      "ConstraintDescription": "Must be one of the three Allowed Values."
+    }
+  },
+  "Mappings": {
+    "Environments": {
+      "-AutoTag": {
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "myProjectforassignment"
+          }
+        ]
+      }
+    }
+  },
+  "Resources": {
+    "mySSMRole": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "Path": "/",
+        "UserName": "IAMSSMRole",
+        "Policies": [
+          {
+            "PolicyName": "my_ssm_policy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Action": [
+                    "ssm:GetParameter",
+                    "ssm:GetParameters",
+                    "ssm:PutParameter",
+                    "ssm:DescribeParameters",
+                    "ssm:DeleteParameter",
+                    "ssm:DeleteParameters"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

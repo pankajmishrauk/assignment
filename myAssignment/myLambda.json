@@ -1,0 +1,174 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CFN template for creation of Lambda function and role.",
+  "Parameters": {
+    "BuildURL": {
+      "Type": "String"
+    },
+    "UTCTimeStamp": {
+      "Default": "2015-06-03T01:45:45",
+      "Type": "String",
+      "Description": "UTC TimeStamp sample example 2010-09-09T09:45:45"
+    },
+    "EnvironUsed": {
+      "Default": "dev",
+      "Description": "The Environment Used.",
+      "Type": "String",
+      "AllowedValues": [
+        "dev",
+        "uat",
+        "prod"
+      ],
+      "ConstraintDescription": "Must be one of the three Allowed Values."
+    }
+  },
+  "Mappings": {
+    "Environments": {
+      "-AutoTag": {
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "myProjectforassignment"
+          }
+        ]
+      }
+    }
+  },
+  "Resources": {
+    "MyCucstom": {
+      "Type": "Custom::MyCucstom",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "myLambdaFunction",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "myLambdaFunctionPermissionsns": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "myLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Ref": "myEvent"
+        }
+      }
+    },
+    "myLambdaFunction": {
+      "DependsOn": "LambdaExecutionRole",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "mybucket-lambda-dev",
+          "S3Key": "lambdafn/exercise-lambda.zip"
+        },
+        "FunctionName": "exercise-lambda",
+        "Handler": "exercise-lambda.lambda_handler",
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRole",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.8",
+        "Timeout": 60
+      },
+      "Type": "AWS::Lambda::Function"
+    },
+    "myEvent": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Description": "EventRule",
+        "EventPattern": {
+          "source": [
+            "aws.ssm"
+          ],
+          "detail-type": [
+            "Parameter Store Change",
+            "Parameter Store Policy Action"
+          ]
+        },
+        "State": "ENABLED"
+      }
+    },
+    "LambdaExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "RoleName": "mylambdarole1",
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "Lambda",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": "arn:aws:logs:*:*:*",
+                  "Sid": "LogAccess"
+                },
+                {
+                  "Action": [
+                    "ssm:GetParameter"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                  "Sid": "SSMAccess"
+                },
+                {
+                  "Action": [
+                    "s3:ListBucket",
+                    "s3:GetObject",
+                    "s3:PutObject"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "arn:aws:s3:::mybucket-lambda-dev/*",
+                  "Sid": "S3Access"
+                },
+                {
+                  "Action": [
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                  "Sid": "VPCAccessEC2NICPolicy"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

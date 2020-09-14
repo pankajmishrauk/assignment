@@ -1,0 +1,67 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CFN template for creation of S3 role.",
+  "Parameters": {
+    "BuildURL": {
+      "Type": "String"
+    },
+    "UTCTimeStamp": {
+      "Default": "2015-06-03T01:45:45",
+      "Type": "String",
+      "Description": "UTC TimeStamp sample example 2010-09-09T09:45:45"
+    },
+    "EnvironUsed": {
+      "Default": "dev",
+      "Description": "The Environment Used.",
+      "Type": "String",
+      "AllowedValues": [
+        "dev",
+        "uat",
+        "prod"
+      ],
+      "ConstraintDescription": "Must be one of the three Allowed Values."
+    }
+  },
+  "Mappings": {
+    "Environments": {
+      "-AutoTag": {
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "myProjectforassignment"
+          }
+        ]
+      }
+    }
+  },
+  "Resources": {
+    "mys3Role": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "Path": "/",
+        "UserName": "IAMS3MRole",
+        "Policies": [
+          {
+            "PolicyName": "my_s3_policy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Action": [
+                    "s3:List*",
+                    "s3:Get*",
+                    "s3:Put*",
+                    "s3:Delete*"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "arn:aws:s3:::mybucket-lambda-dev/*",
+                  "Sid": "S3Access"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

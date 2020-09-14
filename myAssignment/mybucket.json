@@ -1,0 +1,168 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CFN template for creation of S3.",
+  "Parameters": {
+    "BuildURL": {
+      "Type": "String"
+    },
+    "UTCTimeStamp": {
+      "Default": "2015-06-03T01:45:45",
+      "Type": "String",
+      "Description": "UTC TimeStamp sample example 2010-09-09T09:45:45"
+    },
+    "EnvironUsed": {
+      "Default": "dev",
+      "Description": "The Environment Used.",
+      "Type": "String",
+      "AllowedValues": [
+        "dev",
+        "uat",
+        "prod"
+      ],
+      "ConstraintDescription": "Must be one of the three Allowed Values."
+    }
+  },
+  "Mappings": {
+    "Environments": {
+      "-AutoTag": {
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "myProjectforassignment"
+          }
+        ]
+      },
+      "dev": {
+        "IAMLambdaAccessForS3": "arn:aws:iam::990702915730:role/mylambdarole1",
+        "IAMUserAcces": "arn:aws:iam::990702915730:user/IAMS3MRole"
+      }
+    }
+  },
+  "Resources": {
+    "myLambdaBucket": {
+      "Properties": {
+        "AccessControl": "Private",
+        "BucketName": "mybucket-lambda-dev",
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "ExpirationInDays": 30,
+              "Id": "S3ObjectLifeCycleRule",
+              "Prefix": "",
+              "Status": "Enabled"
+            }
+          ]
+        }
+      },
+      "Type": "AWS::S3::Bucket"
+    },
+    "myLambdaBucketPolicy": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "myLambdaBucket"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:Get*",
+                "s3:Put*",
+                "s3:List*",
+                "s3:Delete*"
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": [
+                  {
+                    "Fn::FindInMap": [
+                      "Environments",
+                      {
+                        "Ref": "EnvironUsed"
+                      },
+                      "IAMUserAcces"
+                    ]
+                  }
+                ]
+              },
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "myLambdaBucket"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "myLambdaBucket"
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ],
+              "Sid": "IAMUserAcces"
+            },
+            {
+              "Action": [
+                "s3:ListBucket",
+                "s3:GetObject",
+                "s3:PutObject"
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": [
+                  {
+                    "Fn::FindInMap": [
+                      "Environments",
+                      {
+                        "Ref": "EnvironUsed"
+                      },
+                      "IAMLambdaAccessForS3"
+                    ]
+                  }
+                ]
+              },
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "myLambdaBucket"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "myLambdaBucket"
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ],
+              "Sid": "IAMLambdaAcces"
+            }
+          ],
+          "Version": "2012-10-17"
+        }
+      },
+      "Type": "AWS::S3::BucketPolicy"
+    }
+  }
+}
