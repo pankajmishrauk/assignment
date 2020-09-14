@@ -121,7 +121,7 @@
             }
           ]
         },
-        "RoleName": "mylambdarole11",
+        "RoleName": "mylambdarole1",
         "Path": "/",
         "Policies": [
           {
