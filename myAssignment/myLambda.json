@@ -58,8 +58,11 @@
         "Action": "lambda:InvokeFunction",
         "Principal": "events.amazonaws.com",
         "SourceArn": {
-          "Ref": "myEvent"
-        }
+          "Fn::GetAtt": [
+            "myEvent",
+            "Arn"
+          ]
+        },
       }
     },
     "myLambdaFunction": {
@@ -69,7 +72,7 @@
           "S3Bucket": "mybucket-lambda-dev",
           "S3Key": "lambdafn/exercise-lambda.zip"
         },
-        "FunctionName": "exercise-lambda",
+        "FunctionName": "exercise-lambda1",
         "Handler": "exercise-lambda.lambda_handler",
         "MemorySize": 128,
         "Role": {
@@ -118,7 +121,7 @@
             }
           ]
         },
-        "RoleName": "mylambdarole1",
+        "RoleName": "mylambdarole11",
         "Path": "/",
         "Policies": [
           {
