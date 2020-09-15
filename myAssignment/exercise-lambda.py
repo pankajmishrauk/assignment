@@ -5,14 +5,17 @@ from botocore.vendored import requests
 SUCCESS = "SUCCESS"
 FAILED = "FAILED"
 
-def send(event, responseStatus, responseData, noEcho=False, PhysicalResourceId = None):
+def send(event, responseStatus, responseData, context = None, noEcho=False, PhysicalResourceId = None):
     responseUrl = event['ResponseURL']
 
     print(responseUrl)
 
     responseBody = {}
     responseBody['Status'] = responseStatus
-    responseBody['PhysicalResourceId'] = event['PhysicalResourceId']
+    responseBody['Reason'] = 'See the details in CloudWatch Log Stream: '
+    print("******************************************************************")
+    print(responseBody['Reason'])
+    responseBody['PhysicalResourceId'] = context.log_stream_name
     print("******************************************************************")
     print(responseBody['PhysicalResourceId'])
     responseBody['StackId'] = event['StackId']
@@ -29,7 +32,6 @@ def send(event, responseStatus, responseData, noEcho=False, PhysicalResourceId =
         'content-type' : '',
         'content-length' : str(len(json_responseBody))
     }
-
     try:
         response = requests.put(responseUrl,
                                 data=json_responseBody,
@@ -56,6 +58,6 @@ def lambda_handler(event, context):
 		responseValue = event['ResourceProperties']['ServiceToken']
 		responseData = {}
 		responseData['Data'] = responseValue
-		send(event, SUCCESS, responseData)
+		send(event, SUCCESS, responseData, context)
 	except Exception as e:
 	    print("send(..) failed executing requests.put(..): " + str(e))
